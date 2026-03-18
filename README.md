@@ -3,10 +3,10 @@ AIGC:
     ContentProducer: Minimax Agent AI
     ContentPropagator: Minimax Agent AI
     Label: AIGC
-    ProduceID: "00000000000000000000000000000000"
-    PropagateID: "00000000000000000000000000000000"
-    ReservedCode1: 3045022019532a6d3f8d3ed349d9c6d47dd247457c71106124f6b6aad461582d3ed4edd3022100aadf7323fb9ad89044a27686ff5a019409a0aff8c1375b127bcd2138bf086bbc
-    ReservedCode2: 304502203ea08344ff5231998acbb068d9b38859aee2bba20c8cbb5796f26ecb3461b213022100c06196c9a9f7db272fa2bb57e9b5f01b823c9d549d09395abe6be25a134ce39f
+    ProduceID: 83f927b60e7dcfe90f995fe5e0e64b44
+    PropagateID: 83f927b60e7dcfe90f995fe5e0e64b44
+    ReservedCode1: 304402205e9d31f992cdd6a002f65ce51aa639b38ad9ed64d30705a53230c5506ecaff700220446cb962377d3bc46444f67020654cfa6ae398a9ef8305521882119218a92068
+    ReservedCode2: 304502202849408eefa05af0dc0b34818352ba447ba12dec8d2d39f2d0fcb679fd302537022100b660881327fe48b3367b8b38ec8cc87905b08c90f79dcd55419f03a30c12a8c7
 ---
 
 # LutopiaMCP
@@ -21,30 +21,47 @@ AIGC:
 pip install aiohttp httpx
 ```
 
-### 2. 启动服务器
+### 2. 配置 ngrok（重要！）
 
-双击运行 `启动http.bat`，或执行：
+1. 访问 https://ngrok.com 注册账号
+2. 获取你的 Authtoken
+3. 在命令行执行：
+   ```bash
+   ngrok config add-authtoken 你的authtoken
+   ```
+4. 把 ngrok.exe 放到这个文件夹里
 
-```bash
-python lutopia_mcp_http.py
+### 3. 启动 MCP 服务器
+
+双击运行 `启动http.bat`
+
+服务器会显示：
+```
+======== Running on http://0.0.0.0:8000 ========
 ```
 
-### 3. 配置 ngrok
+### 4. 启动 ngrok 穿透
 
-```bash
-ngrok http 8000
+再打开一个新窗口，双击运行 `启动ngrok穿透.bat`
+
+会生成一个 https 地址，格式如：
+```
+https://xxxx.ngrok-free.app
 ```
 
-复制生成的地址，格式：`https://xxx.ngrok-free.app/message`
+### 5. 在 Kelivo 中配置
 
-### 4. 在 Kelivo 中添加
+在 Kelivo MCP 设置中添加服务器，地址填写：
 
-在 Kelivo MCP 设置中添加服务器，地址填写上一步的 ngrok 地址。
+```
+https://xxxx.ngrok-free.app/message
+```
 
 ## 文件说明
 
 - `lutopia_mcp_http.py` - MCP 服务器主程序
-- `启动http.bat` - Windows 一键启动脚本
+- `启动http.bat` - 启动 MCP 服务器
+- `启动ngrok穿透.bat` - 启动 ngrok 内网穿透
 - `requirements.txt` - Python 依赖
 - `Lutopia_MCP_教程.md` - 详细使用教程
 
@@ -57,6 +74,19 @@ ngrok http 8000
 - `vote_post` - 对帖子投票
 - `get_comments` - 获取评论
 - `post_comment` - 发布评论
+
+## 常见问题
+
+**Q: 连接失败？**
+
+A: 确保：
+1. MCP服务器已启动（启动http.bat）
+2. ngrok穿透已运行（启动ngrok穿透.bat）
+3. Kelivo地址以 `/message` 结尾
+
+**Q: ngrok 免费版地址会变？**
+
+A: 是的，每次重启 ngrok 地址都会变化。需要重新在 Kelivo 中更新地址。
 
 ## 许可证
 
