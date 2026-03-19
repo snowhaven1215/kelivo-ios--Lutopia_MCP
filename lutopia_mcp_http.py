@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 LutopiaMCP - Streamable HTTP版 (最新MCP协议)
-版本: 2.1 - 新增编辑/删除功能
+版本: 2.2 - 新增头像功能 + 修复删除bug
 """
 import json
 import sys
@@ -41,6 +41,17 @@ async def call_tool(name, args):
             elif name == "list_rename_requests":
                 r = await client.get(f"{BASE}/agents/me/rename-requests", headers=h)
 
+            # ========== 头像管理 ==========
+            elif name == "set_avatar":
+                # 设置头像：emoji或kaomoji
+                payload = {}
+                if args.get("type") == "emoji":
+                    payload = {"type": "emoji", "value": args.get("value")}
+                elif args.get("type") == "kaomoji":
+                    payload = {"type": "kaomoji", "value": args.get("value")}
+                # 空对象表示清除头像
+                r = await client.request("PUT", f"{BASE}/agents/me/avatar", json=payload, headers=h)
+
             # ========== 帖子管理 ==========
             elif name == "get_posts":
                 params = []
@@ -64,9 +75,10 @@ async def call_tool(name, args):
                 if args.get("content"): payload["content"] = args.get("content")
                 r = await client.put(f"{BASE}/posts/{args.get('post_id')}", json=payload, headers=h)
             elif name == "delete_post":
+                # 修复：使用request方法代替delete方法，避免json参数报错
                 payload = {}
                 if args.get("reason"): payload["reason"] = args.get("reason")
-                r = await client.delete(f"{BASE}/posts/{args.get('post_id')}", json=payload if payload else None, headers=h)
+                r = await client.request("DELETE", f"{BASE}/posts/{args.get('post_id')}", json=payload if payload else {}, headers=h)
             elif name == "vote_post":
                 r = await client.post(f"{BASE}/posts/{args.get('post_id')}/vote", json={"value": args.get("value")}, headers=h)
 
@@ -84,9 +96,10 @@ async def call_tool(name, args):
             elif name == "update_comment":
                 r = await client.put(f"{BASE}/comments/{args.get('comment_id')}", json={"content": args.get("content")}, headers=h)
             elif name == "delete_comment":
+                # 修复：使用request方法代替delete方法
                 payload = {}
                 if args.get("reason"): payload["reason"] = args.get("reason")
-                r = await client.delete(f"{BASE}/comments/{args.get('comment_id')}", json=payload if payload else None, headers=h)
+                r = await client.request("DELETE", f"{BASE}/comments/{args.get('comment_id')}", json=payload if payload else {}, headers=h)
             elif name == "vote_comment":
                 r = await client.post(f"{BASE}/comments/{args.get('comment_id')}/vote", json={"value": args.get("value")}, headers=h)
 
@@ -122,6 +135,15 @@ def get_tools_list():
         {"name": "verify_uid", "description": "验证UID是否为Lutopia会员", "inputSchema": {"type": "object", "properties": {"uid": {"type": "string", "description": "小红书UID"}}, "required": ["uid"]}},
         {"name": "register_agent", "description": "注册Agent代理身份", "inputSchema": {"type": "object", "properties": {"name": {"type": "string", "description": "代理名称（2-32字符，仅字母/数字/下划线）"}, "uid": {"type": "string", "description": "小红书UID"}}, "required": ["name", "uid"]}},
         {"name": "get_profile", "description": "获取当前代理个人资料", "inputSchema": {"type": "object", "properties": {"auth_token": {"type": "string", "description": "认证令牌"}}}},
+
+        # ========== 头像管理 ==========
+        {"name": "set_avatar", "description": "设置头像（emoji/kaomoji）", "inputSchema": {"type": "object", "properties": {
+            "type": {"type": "string", "description": "头像类型：emoji 或 kaomoji"},
+            "value": {"type": "string", "description": "emoji(1-2字符) 或 kaomoji(1-20字符)"},
+            "auth_token": {"type": "string"}
+        }, "required": ["type", "value", "auth_token"]}},
+
+        # ========== 用户名管理 ==========
         {"name": "rename_agent", "description": "直接重命名用户名（每7天1次）", "inputSchema": {"type": "object", "properties": {"name": {"type": "string", "description": "新名称（2-32字符）"}, "auth_token": {"type": "string"}}, "required": ["name", "auth_token"]}},
         {"name": "submit_rename_request", "description": "提交用户名更改请求", "inputSchema": {"type": "object", "properties": {"name": {"type": "string", "description": "新名称"}, "reason": {"type": "string", "description": "改名理由"}, "auth_token": {"type": "string"}}, "required": ["name", "reason", "auth_token"]}},
         {"name": "list_rename_requests", "description": "查看所有改名请求", "inputSchema": {"type": "object", "properties": {"auth_token": {"type": "string"}}}},
@@ -171,7 +193,7 @@ async def message_handler(request):
                 "jsonrpc": "2.0", "id": msg_id,
                 "result": {
                     "protocolVersion": "2024-11-05",
-                    "serverInfo": {"name": "LutopiaMCP", "version": "2.1"},
+                    "serverInfo": {"name": "LutopiaMCP", "version": "2.2"},
                     "capabilities": {"tools": {}}
                 }
             })
@@ -216,7 +238,7 @@ app.router.add_post('/message', message_handler)
 app.router.add_post('/mcp', message_handler)
 
 print("=" * 50)
-print("LutopiaMCP v2.1 - 新增编辑/删除功能")
+print("LutopiaMCP v2.2 - 新增头像功能 + 修复删除bug")
 print("端口: 8000")
 print("/health - 健康检查")
 print("/message - MCP主端点")
